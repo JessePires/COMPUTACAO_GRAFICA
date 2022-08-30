@@ -9,15 +9,11 @@ class wcPt2c {
 
 wcPt2c objectCoordinates[4];
 
-GLfloat degreesToRadians(GLfloat degrees) { return degrees * (M_PI / 180.0); }
-
-void rotatePolygon(wcPt2c* verts, GLint nVerts, GLdouble theta) {
+void scalePolygon(wcPt2c* verts, GLint nVerts, GLfloat sx, GLfloat sy,
+                  GLfloat xf, GLfloat yf) {
   for (GLint i = 0; i < nVerts; i++) {
-    verts[i].x = verts[i].x * cos(degreesToRadians(theta)) -
-                 verts[i].y * sin(degreesToRadians(theta));
-
-    verts[i].y = verts[i].x * sin(degreesToRadians(theta)) +
-                 verts[i].y * cos(degreesToRadians(theta));
+    verts[i].x = (verts[i].x - xf) * sx;
+    verts[i].y = (verts[i].y - yf) * sy;
   }
 }
 
@@ -26,22 +22,25 @@ int init(void) {  // inicia os parâmetros de rendering
   glMatrixMode(GL_PROJECTION);
   gluOrtho2D(0.0, 200.0, 0.0, 150.0);
 
-  objectCoordinates[0].x = 70;
-  objectCoordinates[0].y = 70;
+  objectCoordinates[0].x = 90;
+  objectCoordinates[0].y = 65;
 
-  objectCoordinates[1].x = 70;
-  objectCoordinates[1].y = 90;
+  objectCoordinates[1].x = 90;
+  objectCoordinates[1].y = 85;
 
-  objectCoordinates[2].x = 90;
-  objectCoordinates[2].y = 90;
+  objectCoordinates[2].x = 110;
+  objectCoordinates[2].y = 85;
 
-  objectCoordinates[3].x = 90;
-  objectCoordinates[3].y = 70;
+  objectCoordinates[3].x = 110;
+  objectCoordinates[3].y = 65;
 
   return 0;
 }
 
 void display(void) {  // função callback chamada para fazer o desenho
+  GLdouble xf = 50;
+  GLdouble yf = 37.5;
+
   glClear(GL_COLOR_BUFFER_BIT);
 
   glColor3f(1.0, 0.0, 0.0);
@@ -56,7 +55,7 @@ void display(void) {  // função callback chamada para fazer o desenho
   glEnd();
 
   glBegin(GL_LINE_LOOP);
-  rotatePolygon(objectCoordinates, 4, -20);
+  scalePolygon(objectCoordinates, 4, 2, 2, xf, yf);
 
   for (GLint i = 0; i < 4; i++) {
     glVertex2i(objectCoordinates[i].x, objectCoordinates[i].y);
