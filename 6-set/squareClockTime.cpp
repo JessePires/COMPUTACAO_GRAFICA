@@ -4,6 +4,9 @@
 #include <math.h>
 
 #define RAND_FLOAT() ((float)rand() / RAND_MAX)
+#define SECONDS_GAP 360 / 60
+#define MINUTE_GAP SECONDS_GAP / 60
+#define HOURS_GAP 360 / 12
 
 int init();
 void display();
@@ -15,6 +18,10 @@ void scale2D(GLfloat incx, GLfloat incy, GLfloat maxx, GLfloat minx);
 
 GLfloat rfx, rfy, sx, sy, angle, tx, ty;
 bool increasing;
+time_t rawtime;
+struct tm *info;
+float minuteArrowDegree = 0;
+float hourArrowDegree = 0;
 
 int main(int argc, char **argv)
 {
@@ -36,6 +43,7 @@ int main(int argc, char **argv)
 
 int init(void)
 {
+
   glClearColor(1.0, 1.0, 1.0, 0.0); // define a cor de fundo
 
   glMatrixMode(GL_PROJECTION); // carrega a matriz de projeção
@@ -99,26 +107,65 @@ void drawLine(GLfloat center, GLfloat x, GLfloat y, GLfloat r, GLfloat g, GLfloa
   glEnd();
 }
 
+void handleSecondsArrow()
+{
+  glPushMatrix();
+  glTranslatef(250, 250, 0);
+  glRotatef(info->tm_sec * SECONDS_GAP * -1, 0, 0, 1);
+  glTranslatef(-250, -250, 0);
+
+  drawLine(250, 250, 430, 0, 1, 0); // segundos
+  glPopMatrix();
+}
+
+void handleMinutesArrow()
+{
+  minuteArrowDegree = info->tm_min * SECONDS_GAP;
+  float secondsPadding = info->tm_sec / 60.0 * 6.0;
+  glPushMatrix();
+  glTranslatef(250, 250, 0);
+  glRotatef((minuteArrowDegree + secondsPadding) * -1, 0, 0, 1);
+  glTranslatef(-250, -250, 0);
+
+  drawLine(250, 250, 400, 1, 0, 0); // minutes
+  glPopMatrix();
+}
+
+void handleHoursArrow()
+{
+  hourArrowDegree = info->tm_hour * HOURS_GAP;
+  float minutesPadding = info->tm_min / 60.0 * 6.0;
+  glPushMatrix();
+  glTranslatef(250, 250, 0);
+  glRotatef((hourArrowDegree + minutesPadding) * -1, 0, 0, 1);
+  glTranslatef(-250, -250, 0);
+
+  drawLine(250, 250, 380, 0, 0, 1); // hora
+  glPopMatrix();
+}
+
 void display(void)
 {
+  time(&rawtime);
+  info = localtime(&rawtime);
+
   glClear(GL_COLOR_BUFFER_BIT);
   glColor3f(1.0, 0.0, 0.0);
   glMatrixMode(GL_MODELVIEW);
 
-  glPushMatrix();
-  // glLoadIdentity();
-
-  drawLine(250, 90, 250, 0, 1, 0);
+  glLineWidth(2.0);
   drawCircle(240);
-  drawBars(220, 190, 360 / 60);
-  drawBars(220, 160, 360 / 12);
+  drawBars(220, 190, SECONDS_GAP);
+  drawBars(220, 160, HOURS_GAP);
 
-  // drawLine(250, 100, 250, 1, 0, 0);
-  // drawLine(250, 110, 250, 0, 0, 1);]
+  glLineWidth(4.0);
+  handleHoursArrow();
 
-  // glTranslatef(0, 1, 0);
-  // movimentaQuadrado();
-  glPopMatrix();
+  glLineWidth(3.0);
+  handleMinutesArrow();
+
+  glLineWidth(2.0);
+  handleSecondsArrow();
 
   glutPostRedisplay();
   glutSwapBuffers();
